@@ -1,0 +1,17 @@
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/go-build/
+*.log
+vendor/
+.idea/
+.vscode/
+.DS_Store
+*.tmp
+*.swp
+*.swo
