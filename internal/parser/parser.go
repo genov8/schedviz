@@ -33,6 +33,12 @@ type Snapshot struct {
 	GlobalRunQueue  int   // runqueue
 	LocalRunQueues  []int // [ ... ]
 	SchedTicks      []int // schedticks=[ ... ]
+
+	BusyProcs          int
+	TotalLocalRunQueue int
+	TotalRunnable      int
+	RunnablePerP       float64
+	PressureLevel      string
 }
 
 func ParseLine(line string) (*Snapshot, error) {
@@ -92,8 +98,39 @@ func ParseLine(line string) (*Snapshot, error) {
 		return nil, fmt.Errorf("parse schedticks: %w", err)
 	}
 	s.SchedTicks = schedTicks
+	s.deriveMetrics()
 
 	return s, nil
+}
+
+func (s *Snapshot) deriveMetrics() {
+	s.BusyProcs = s.Gomaxprocs - s.Idleprocs
+
+	for _, n := range s.LocalRunQueues {
+		s.TotalLocalRunQueue += n
+	}
+
+	s.TotalRunnable = s.GlobalRunQueue + s.TotalLocalRunQueue
+	if s.Gomaxprocs > 0 {
+		s.RunnablePerP = float64(s.TotalRunnable) / float64(s.Gomaxprocs)
+	}
+
+	s.PressureLevel = pressureLevel(s.TotalRunnable, s.RunnablePerP)
+}
+
+func pressureLevel(totalRunnable int, runnablePerP float64) string {
+	switch {
+	case totalRunnable == 0:
+		return "idle"
+	case runnablePerP < 1:
+		return "low"
+	case runnablePerP < 5:
+		return "medium"
+	case runnablePerP < 20:
+		return "high"
+	default:
+		return "critical"
+	}
 }
 
 func parseIntSlice(raw string) ([]int, error) {

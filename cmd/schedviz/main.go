@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/genov8/schedviz/pkg/schedviz"
 )
@@ -22,15 +23,19 @@ func main() {
 			continue
 		}
 
-		fmt.Printf(
-			"t=%4dms | P=%2d (idle=%2d) | M=%2d (idle=%2d) | GRQ=%4d | LRQ=%v\n",
-			snap.TimestampMs,
-			snap.Gomaxprocs,
-			snap.Idleprocs,
-			snap.Threads,
-			snap.IdleThreads,
-			snap.GlobalRunQueue,
-			snap.LocalRunQueues,
-		)
+		fmt.Println(formatSnapshot(snap))
 	}
+}
+
+func formatSnapshot(s *schedviz.Snapshot) string {
+	return fmt.Sprintf(
+		"%.1fs  Ps %d/%d busy  runnable %d  pressure %s  GQ %d  LQ %d",
+		float64(s.TimestampMs)/1000,
+		s.BusyProcs,
+		s.Gomaxprocs,
+		s.TotalRunnable,
+		strings.ToUpper(s.PressureLevel),
+		s.GlobalRunQueue,
+		s.TotalLocalRunQueue,
+	)
 }
