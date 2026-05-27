@@ -8,7 +8,5 @@ run:
 	go run ./cmd/schedviz
 
 run_example:
-	go run ./examles/load
-
-
+	go run ./examples/load
 
