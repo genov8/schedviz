@@ -51,13 +51,28 @@ The binary will be installed into:
 GODEBUG=schedtrace=1000 ./your_app 2>&1 | schedviz
 ```
 
+Local example using the included load generator:
+
+```bash
+GODEBUG=schedtrace=1000 ./bin/load 2>&1 | ./bin/schedviz
+```
+
 ### Example output:
 
 ```
-t=1005ms | P=14 (idle=0) | M=15 (idle=0) | GRQ=312 | LRQ=[21 18 25 14 20 23 19 22 17 16 15 14 19 18]
-t=2008ms | P=14 (idle=0) | M=15 (idle=0) | GRQ=287 | LRQ=[19 22 17 16 13 20 18 21 15 14 12 19 17 20]
-t=3012ms | P=14 (idle=1) | M=15 (idle=2) | GRQ=198 | LRQ=[12 15 14 11 10 16 13 14  9 12  8 11 10 13]
+1.0s  Ps 14/14 busy  runnable 533  pressure CRITICAL  GQ 312  LQ 221
+2.0s  Ps 14/14 busy  runnable 485 ↓48  pressure CRITICAL  GQ 287 ↓25  LQ 198 ↓23
+3.0s  Ps 13/14 busy  runnable 367 ↓118  pressure HIGH  GQ 198 ↓89  LQ 169 ↓29
 ```
+
+### Reading the output
+
+- **Ps busy** shows how many processors (`P`s) are currently doing Go work out of `GOMAXPROCS`.
+- **runnable** is the total number of goroutines ready to run but not currently running.
+- **pressure** summarizes runnable goroutines per `P`: `IDLE`, `LOW`, `MEDIUM`, `HIGH`, or `CRITICAL`.
+- **GQ** is the global run queue: runnable goroutines waiting in the shared scheduler queue.
+- **LQ** is the total local run queue size across all `P`s.
+- **↑**, **↓**, and **±0** show the change since the previous scheduler snapshot: increased, decreased, or unchanged.
 
 ---
 
